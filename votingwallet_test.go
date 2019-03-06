@@ -108,13 +108,14 @@ func TestMinimalVotingWallet(t *testing.T) {
 			}
 
 			vw.SetErrorReporting(func(vwerr error) {
-				t1.Fatalf("voting wallet errored: %v", vwerr)
+				t.Fatalf("voting wallet errored: %v", vwerr)
 			})
 
 			tc.f(t1, vw)
 		})
 
 		if vw != nil {
+			vw.SetErrorReporting(nil)
 			vw.Stop()
 		}
 

@@ -251,19 +251,21 @@ func (w *Wallet) GenerateBlocks(nb int) ([]*chainhash.Hash, error) {
 	}
 
 	nbVotes := int(w.hn.ActiveNet.TicketsPerBlock)
+	hashes := make([]*chainhash.Hash, nbVotes)
 
 	for i := 0; i < nb; i++ {
 		// genHeight is the height of the _next_ block (the one that will be
 		// generated once we call generate()).
 		genHeight := startHeight + int64(i) + 1
 
-		_, err := w.c.Generate(1)
+		h, err := w.c.Generate(1)
 		if err != nil {
 			return nil, fmt.Errorf("unable to generate block at height %d: %v",
 				genHeight, err)
 		}
+		hashes[i] = h[0]
 
-		needsVotes := genHeight >= w.hn.ActiveNet.StakeValidationHeight
+		needsVotes := genHeight >= (w.hn.ActiveNet.StakeValidationHeight - 1)
 		needsTickets := genHeight >= startTicketPurchaseHeight(w.hn.ActiveNet)
 
 		timeout := time.After(time.Second * 5)
@@ -297,7 +299,7 @@ func (w *Wallet) GenerateBlocks(nb int) ([]*chainhash.Hash, error) {
 		}
 	}
 
-	return nil, nil
+	return hashes, nil
 }
 
 func (w *Wallet) logError(err error) {
